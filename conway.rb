@@ -1,4 +1,8 @@
 class Board
+  attr_reader :living_cells
+  attr_reader :width
+  attr_reader :height
+
   def initialize(width, height, living_cells)
     @width = width
     @height = height
@@ -29,3 +33,38 @@ class Board
     end
   end
 end
+
+class BoardIterator
+  def initialize(board)
+    @board = board
+  end
+
+  def next
+    next_living_cells  = []
+
+    (0..@board.height).to_a.each do |y|
+      (0..@board.width).to_a.each do |x|
+        neighbours = [
+          [y-1, x-1], [y-1, x], [y-1, x+1],
+          [y, x-1], [y, x+1],
+          [y+1, x-1], [y+1, x], [y+1, x+1],
+        ]
+
+        living_neighbours = neighbours & @board.living_cells
+
+        if living_neighbours.count == 3
+          next_living_cells << [x, y]
+        end
+      end
+    end
+
+    Board.new(@board.width, @board.height, next_living_cells)
+  end
+end
+
+# board =  Board.new(5,5,[[0, 0], [0, 1], [0, 2]])
+# puts board
+# puts '---'
+# puts BoardIterator.new(board).next
+
+

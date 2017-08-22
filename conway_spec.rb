@@ -28,19 +28,48 @@ RSpec.describe Board do
       end
     end
   end
+end
 
+RSpec.describe BoardIterator do
   describe 'tick' do
     it 'kills a lone cell' do
       living_cells = [[0, 0]]
-      expect(Board.new(2, 2, living_cells).tick.to_s).to eq <<~EOF
-        ..
-        ..
-      EOF
+      board = Board.new(3, 3, living_cells)
+      expect(BoardIterator.new(board).next.living_cells).to eq []
     end
 
-    context 'when empty' do
+    it 'spawns life in a cell with 3 neighbours' do
+      living_cells = [[0, 0], [0, 1], [0, 2]]
+      board = Board.new(3, 3, living_cells)
+      expect(BoardIterator.new(board).next.living_cells)
+        .to include [1, 1]
+    end
+
+    it 'sustains a cell with 2 neighbours' do
+      living_cells = [[0, 0], [0, 1], [1, 1]]
+      board = Board.new(3, 3, living_cells)
+      expect(BoardIterator.new(board).next.living_cells)
+        .to include [1, 1]
+    end
+
+    it 'sustains a cell with 3 neighbours' do
+      living_cells = [[0, 0], [0, 1], [0, 2], [1, 1]]
+      board = Board.new(3, 3, living_cells)
+      expect(BoardIterator.new(board).next.living_cells)
+        .to include [1, 1]
+    end
+
+    it 'kills a cell with 4 neighbours' do
+      living_cells = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1]]
+      board = Board.new(3, 3, living_cells)
+      expect(BoardIterator.new(board).next.living_cells)
+        .to_not include [1, 1]
+    end
+
+    context 'when given an empty board' do
       it 'returns an empty board' do
-        expect(Board.new(3, 3, []).tick.to_s).to eq Board.new(3, 3, []).to_s
+        board = Board.new(3, 3, [])
+        expect(BoardIterator.new(board).next.living_cells).to eq []
       end
     end
   end
