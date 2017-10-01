@@ -113,7 +113,12 @@ eightNeighbours ( x, y ) =
         ys =
             List.range (y - 1) (y + 1)
     in
-        Set.remove ( x, y ) (Set.fromList (List.concat (List.map (\f -> List.map f xs) (List.map (\y x -> ( x, y )) ys))))
+        Set.remove ( x, y ) (Set.fromList (cartesianProduct xs ys))
+
+
+cartesianProduct : List a -> List a -> List ( a, a )
+cartesianProduct xs ys =
+    List.concatMap (\f -> List.map f ys) (List.map (,) xs)
 
 
 decide : LivingCells -> Coordinate -> Bool
