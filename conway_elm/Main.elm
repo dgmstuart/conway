@@ -37,6 +37,7 @@ type Msg
     = Reset
     | Load String
     | Set
+    | SetGlider
     | Step
 
 
@@ -56,6 +57,9 @@ update msg model =
 
                 Err errors ->
                     { model | errors = Just errors }
+
+        SetGlider ->
+            { model | livingCells = glider }
 
         Step ->
             { model | livingCells = (next model.livingCells) }
@@ -151,11 +155,17 @@ view model =
         [ p [] (maybeToHtml model.errors)
         , input [ placeholder "e.g. (1,2) (3,4)", onInput Load ] []
         , button [ onClick Set ] [ text "Load" ]
+        , button [ onClick SetGlider ] [ text "Glider" ]
         , button [ onClick Reset ] [ text "Reset" ]
         , button [ onClick Step ] [ text "Step" ]
         , pre []
             [ text (coordinatesToString model.livingCells) ]
         ]
+
+
+glider : LivingCells
+glider =
+    Set.fromList [ ( 1, 0 ), ( 2, 1 ), ( 0, 2 ), ( 1, 2 ), ( 2, 2 ) ]
 
 
 coordinatesToString : LivingCells -> String
