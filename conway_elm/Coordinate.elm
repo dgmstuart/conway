@@ -1,18 +1,29 @@
 module Coordinate exposing (Coordinate, parseCoordinates)
 
 import Regex exposing (replace)
+import Set exposing (Set)
 
 
 type alias Coordinate =
     ( Int, Int )
 
 
-parseCoordinates : String -> Result String (List Coordinate)
+parseCoordinates : String -> Result String (Set Coordinate)
 parseCoordinates input =
     if not (String.isEmpty input) then
-        combine (List.map parseCoordinate (String.words input))
+        toSet (combine (List.map parseCoordinate (String.words input)))
     else
         Err "Input was empty"
+
+
+toSet : Result String (List Coordinate) -> Result String (Set Coordinate)
+toSet result =
+    case result of
+        Ok list ->
+            Ok (Set.fromList list)
+
+        Err error ->
+            Err error
 
 
 parseCoordinate : String -> Result String Coordinate

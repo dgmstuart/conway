@@ -4,6 +4,7 @@ import Html exposing (Html, button, div, p, pre, text, input, program)
 import Html.Attributes exposing (placeholder)
 import Html.Events exposing (onClick, onInput)
 import Coordinate exposing (Coordinate, parseCoordinates)
+import Set exposing (Set)
 
 
 -- MODEL
@@ -22,7 +23,7 @@ init =
 
 
 emptyModel =
-    { livingCells = []
+    { livingCells = Set.empty
     , input = ""
     , errors = Nothing
     }
@@ -100,7 +101,7 @@ coordinatesToString livingCells =
 
 
 type alias LivingCells =
-    List Coordinate
+    Set Coordinate
 
 
 type alias WorldBoundaries =
@@ -112,7 +113,7 @@ livingCellsToStates livingCells =
     List.map (List.map (showState livingCells)) (worldFromCoordinates livingCells)
 
 
-worldFromCoordinates : List Coordinate -> List (List Coordinate)
+worldFromCoordinates : Set Coordinate -> List (List Coordinate)
 worldFromCoordinates coordinates =
     buildWorld (worldBoundaries coordinates)
 
@@ -129,13 +130,13 @@ buildWorld ( ( minX, minY ), ( maxX, maxY ) ) =
         List.map (\f -> List.map f xs) (List.map (\y x -> ( x, y )) ys)
 
 
-worldBoundaries : List Coordinate -> WorldBoundaries
+worldBoundaries : Set Coordinate -> WorldBoundaries
 worldBoundaries coordinates =
     let
         start =
-            startingBoundaries (List.head coordinates)
+            startingBoundaries (List.head (Set.toList coordinates))
     in
-        List.foldr minMaxCoords start coordinates
+        Set.foldr minMaxCoords start coordinates
 
 
 startingBoundaries : Maybe Coordinate -> WorldBoundaries
@@ -157,7 +158,7 @@ minMaxCoords ( x, y ) ( ( minX, minY ), ( maxX, maxY ) ) =
 
 showState : LivingCells -> Coordinate -> Char
 showState coordinates coordinate =
-    if List.member coordinate coordinates then
+    if Set.member coordinate coordinates then
         'x'
     else
         '.'
