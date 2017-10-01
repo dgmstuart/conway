@@ -5,6 +5,7 @@ import Html.Attributes exposing (placeholder)
 import Html.Events exposing (onClick, onInput)
 import Coordinate exposing (Coordinate, parseCoordinates)
 import Set exposing (Set)
+import Dict exposing (Dict)
 
 
 -- MODEL
@@ -37,7 +38,7 @@ type Msg
     = Reset
     | Load String
     | Set
-    | SetGlider
+    | SetPattern LivingCells
     | Step
 
 
@@ -58,8 +59,8 @@ update msg model =
                 Err errors ->
                     { model | errors = Just errors }
 
-        SetGlider ->
-            { model | livingCells = glider }
+        SetPattern livingCells ->
+            { model | livingCells = livingCells }
 
         Step ->
             { model | livingCells = (next model.livingCells) }
@@ -153,19 +154,38 @@ view : Model -> Html Msg
 view model =
     div []
         [ p [] (maybeToHtml model.errors)
-        , input [ placeholder "e.g. (1,2) (3,4)", onInput Load ] []
-        , button [ onClick Set ] [ text "Load" ]
-        , button [ onClick SetGlider ] [ text "Glider" ]
-        , button [ onClick Reset ] [ text "Reset" ]
-        , button [ onClick Step ] [ text "Step" ]
+        , div []
+            [ input [ placeholder "e.g. (1,2) (3,4)", onInput Load ] []
+            , button [ onClick Set ] [ text "Load" ]
+            ]
+        , div []
+            (Dict.values (Dict.map (toButton) buildPatternLibrary))
+        , div []
+            [ button [ onClick Reset ] [ text "Reset" ]
+            , button [ onClick Step ] [ text "Step" ]
+            ]
         , pre []
             [ text (coordinatesToString model.livingCells) ]
         ]
 
 
-glider : LivingCells
-glider =
-    Set.fromList [ ( 1, 0 ), ( 2, 1 ), ( 0, 2 ), ( 1, 2 ), ( 2, 2 ) ]
+type alias PatternLibrary =
+    Dict String LivingCells
+
+
+buildPatternLibrary : PatternLibrary
+buildPatternLibrary =
+    Dict.fromList
+        [ ( "Glider", Set.fromList [ ( 1, 0 ), ( 2, 1 ), ( 0, 2 ), ( 1, 2 ), ( 2, 2 ) ] )
+        , ( "Lightweight spaceship", Set.fromList [ ( 1, 0 ), ( 2, 0 ), ( 3, 0 ), ( 4, 0 ), ( 0, 1 ), ( 4, 1 ), ( 4, 2 ), ( 0, 3 ), ( 3, 3 ) ] )
+        , ( "Blinker", Set.fromList [ ( 0, 1 ), ( 1, 1 ), ( 2, 1 ) ] )
+        , ( "Beacon", Set.fromList [ ( 0, 0 ), ( 1, 0 ), ( 0, 1 ), ( 1, 1 ), ( 2, 2 ), ( 3, 2 ), ( 2, 3 ), ( 3, 3 ) ] )
+        ]
+
+
+toButton : String -> LivingCells -> Html Msg
+toButton name pattern =
+    button [ onClick (SetPattern pattern) ] [ text name ]
 
 
 coordinatesToString : LivingCells -> String
