@@ -10,7 +10,7 @@ import Coordinate exposing (Coordinate, parseCoordinates)
 
 
 type alias Model =
-    { coordinates : List Coordinate
+    { livingCells : LivingCells
     , input : String
     , errors : Maybe String
     }
@@ -22,7 +22,7 @@ init =
 
 
 emptyModel =
-    { coordinates = []
+    { livingCells = []
     , input = ""
     , errors = Nothing
     }
@@ -50,8 +50,8 @@ update msg model =
 
         Set ->
             case parseCoordinates model.input of
-                Ok coordinates ->
-                    ( { model | errors = Nothing, coordinates = coordinates }, Cmd.none )
+                Ok livingCells ->
+                    ( { model | errors = Nothing, livingCells = livingCells }, Cmd.none )
 
                 Err errors ->
                     ( { model | errors = Just errors }, Cmd.none )
@@ -60,8 +60,8 @@ update msg model =
             ( model, Cmd.none )
 
 
-getCoordinates : String -> Result String (List Coordinate)
-getCoordinates input =
+getlivingCells : String -> Result String LivingCells
+getlivingCells input =
     if not (String.isEmpty input) then
         parseCoordinates input
     else
@@ -88,24 +88,28 @@ view model =
         , input [ placeholder "e.g. (1,2) (3,4)", onInput Load ] []
         , button [ onClick Set ] [ text "Load" ]
         , pre []
-            [ text (coordinatesToString model.coordinates) ]
+            [ text (coordinatesToString model.livingCells) ]
         , button [ onClick Reset ] [ text "Reset" ]
         , button [ onClick Step ] [ text "Step" ]
         ]
 
 
-coordinatesToString : List Coordinate -> String
-coordinatesToString coordinates =
-    String.join "\n" (List.map (List.foldr (String.cons) "") (coordinatesToStates coordinates))
+coordinatesToString : LivingCells -> String
+coordinatesToString livingCells =
+    String.join "\n" (List.map (List.foldr (String.cons) "") (livingCellsToStates livingCells))
+
+
+type alias LivingCells =
+    List Coordinate
 
 
 type alias WorldBoundaries =
     ( Coordinate, Coordinate )
 
 
-coordinatesToStates : List Coordinate -> List (List Char)
-coordinatesToStates coordinates =
-    List.map (List.map (showState coordinates)) (worldFromCoordinates coordinates)
+livingCellsToStates : LivingCells -> List (List Char)
+livingCellsToStates livingCells =
+    List.map (List.map (showState livingCells)) (worldFromCoordinates livingCells)
 
 
 worldFromCoordinates : List Coordinate -> List (List Coordinate)
@@ -151,7 +155,7 @@ minMaxCoords ( x, y ) ( ( minX, minY ), ( maxX, maxY ) ) =
     )
 
 
-showState : List Coordinate -> Coordinate -> Char
+showState : LivingCells -> Coordinate -> Char
 showState coordinates coordinate =
     if List.member coordinate coordinates then
         'x'
