@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (Html, button, div, p, pre, text, input, program)
+import Html exposing (Html, button, div, p, pre, text, input, beginnerProgram)
 import Html.Attributes exposing (placeholder)
 import Html.Events exposing (onClick, onInput)
 import Coordinate exposing (Coordinate, parseCoordinates)
@@ -17,9 +17,9 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( emptyModel, Cmd.none )
+model : Model
+model =
+    emptyModel
 
 
 emptyModel =
@@ -40,25 +40,25 @@ type Msg
     | Step
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         Reset ->
-            ( emptyModel, Cmd.none )
+            emptyModel
 
         Load input ->
-            ( { model | input = input }, Cmd.none )
+            { model | input = input }
 
         Set ->
             case parseCoordinates model.input of
                 Ok livingCells ->
-                    ( { model | errors = Nothing, livingCells = livingCells }, Cmd.none )
+                    { model | errors = Nothing, livingCells = livingCells }
 
                 Err errors ->
-                    ( { model | errors = Just errors }, Cmd.none )
+                    { model | errors = Just errors }
 
         Step ->
-            ( { model | livingCells = (next model.livingCells) }, Cmd.none )
+            { model | livingCells = (next model.livingCells) }
 
 
 getlivingCells : String -> Result String LivingCells
@@ -139,15 +139,6 @@ decide livingCells cell =
 livingNeighbourCount : Coordinate -> LivingCells -> Int
 livingNeighbourCount cell livingCells =
     Set.size (Set.intersect (eightNeighbours cell) livingCells)
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
 
 
 
@@ -244,9 +235,8 @@ maybeToHtml m =
 
 main : Program Never Model Msg
 main =
-    program
-        { init = init
+    beginnerProgram
+        { model = model
         , view = view
         , update = update
-        , subscriptions = subscriptions
         }
