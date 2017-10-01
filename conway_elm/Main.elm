@@ -58,7 +58,7 @@ update msg model =
                     ( { model | errors = Just errors }, Cmd.none )
 
         Step ->
-            ( model, Cmd.none )
+            ( { model | livingCells = (next model.livingCells) }, Cmd.none )
 
 
 getlivingCells : String -> Result String LivingCells
@@ -67,6 +67,78 @@ getlivingCells input =
         parseCoordinates input
     else
         Err "Please enter some starting coordinates"
+
+
+next : LivingCells -> LivingCells
+next livingCells =
+    Set.foldr
+        (updateLiving (decide livingCells))
+        Set.empty
+        (neighbours livingCells)
+
+
+updateLiving : (Coordinate -> Bool) -> Coordinate -> LivingCells -> LivingCells
+updateLiving f cell newLivingCells =
+    if (f cell) then
+        (Set.insert cell newLivingCells)
+    else
+        newLivingCells
+
+
+type alias Neighbours =
+    Set Coordinate
+
+
+neighbours : LivingCells -> Neighbours
+neighbours livingCells =
+    Set.foldr (addNeighbours) livingCells livingCells
+
+
+addNeighbours : Coordinate -> Neighbours -> Neighbours
+addNeighbours cell neighbours =
+    Set.union (eightNeighbours cell) neighbours
+
+
+eightNeighbours : Coordinate -> Set Coordinate
+eightNeighbours ( x, y ) =
+    let
+        xs =
+            List.range (x - 1) (x + 1)
+
+        ys =
+            List.range (y - 1) (y + 1)
+    in
+        Set.remove ( x, y ) (Set.fromList (List.concat (List.map (\f -> List.map f xs) (List.map (\y x -> ( x, y )) ys))))
+
+
+decide : LivingCells -> Coordinate -> Bool
+decide livingCells cell =
+    let
+        livingNeighbours =
+            livingNeighbourCount cell livingCells
+    in
+        if Set.member cell livingCells then
+            case livingNeighbours of
+                2 ->
+                    True
+
+                3 ->
+                    True
+
+                _ ->
+                    False
+        else
+            case livingNeighbours of
+                3 ->
+                    True
+
+                _ ->
+                    False
+
+
+livingNeighbourCount : Coordinate -> LivingCells -> Int
+livingNeighbourCount cell livingCells =
+    Set.size (Set.intersect (eightNeighbours cell) livingCells)
 
 
 
@@ -88,10 +160,10 @@ view model =
         [ p [] (maybeToHtml model.errors)
         , input [ placeholder "e.g. (1,2) (3,4)", onInput Load ] []
         , button [ onClick Set ] [ text "Load" ]
-        , pre []
-            [ text (coordinatesToString model.livingCells) ]
         , button [ onClick Reset ] [ text "Reset" ]
         , button [ onClick Step ] [ text "Step" ]
+        , pre []
+            [ text (coordinatesToString model.livingCells) ]
         ]
 
 
