@@ -205,20 +205,10 @@ buildWorld ( ( minX, minY ), ( maxX, maxY ) ) =
 worldBoundaries : Set Coordinate -> WorldBoundaries
 worldBoundaries coordinates =
     let
-        start =
-            startingBoundaries (List.head (Set.toList coordinates))
-    in
-        Set.foldr minMaxCoords start coordinates
-
-
-startingBoundaries : Maybe Coordinate -> WorldBoundaries
-startingBoundaries coordinate =
-    case coordinate of
-        Just xy ->
-            ( xy, xy )
-
-        Nothing ->
+        origin =
             ( ( 0, 0 ), ( 0, 0 ) )
+    in
+        Set.foldr minMaxCoords origin coordinates
 
 
 minMaxCoords : Coordinate -> WorldBoundaries -> WorldBoundaries
